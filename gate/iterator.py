@@ -2,54 +2,54 @@
 program starts, and have the iterator quit when GATE gets the appropriate signal to say the pipeline has
 ended."""
 
-from document import Document
-from corpus import Corpus
-from gate_exceptions import InvalidOffsetException
-import sys, json, codecs, inspect
+from .document import Document
+from .corpus import Corpus
+from .gate_exceptions import InvalidOffsetException
+import sys, json, codecs
 
 class GateIterator(object):
-	def __init__(self):
-		self.scriptParams = {}
+    def __init__(self):
+        self.scriptParams = {}
 
-	def __iter__(self):
-		line = sys.stdin.readline().strip()
-		while line:
-			line = codecs.decode(line, "utf8")
+    def __iter__(self):
+        line = sys.stdin.readline().strip()
+        while line:
+            line = codecs.decode(line, "utf8")
 
-			if line:
-				input_line = line
-				input_json = json.loads(line)
+            if line:
+                input_line = line
+                input_json = json.loads(line)
 
-				if "command" in input_json:
-					if input_json["command"] == "BEGIN_EXECUTION":
-						corpus = Corpus(input_json)
-					elif input_json["command"] == "ABORT_EXECUTION":
-						return
-					elif input_json["command"] == "END_EXECUTION":
-						return
-				else:
-					try:
-						document = Document.load(input_json)
-						self.scriptParams = input_json.get("scriptParams")
-						self.scriptParams = self.scriptParams if self.scriptParams else {}
+                if "command" in input_json:
+                    if input_json["command"] == "BEGIN_EXECUTION":
+                        corpus = Corpus(input_json)
+                    elif input_json["command"] == "ABORT_EXECUTION":
+                        return
+                    elif input_json["command"] == "END_EXECUTION":
+                        return
+                else:
+                    try:
+                        document = Document.load(input_json)
+                        scriptParams = input_json.get("scriptParams")
+                        scriptParams = self.scriptParams if self.scriptParams else {}
 
-						self.scriptParams["inputAS"] = document.annotationSets[input_json["inputAS"]]
-						self.scriptParams["outputAS"] = document.annotationSets[input_json["outputAS"]]
+                        scriptParams["inputAS"] = document.annotationSets[input_json["inputAS"]]
+                        scriptParams["outputAS"] = document.annotationSets[input_json["outputAS"]]
 
-						inputAS = self.scriptParams["inputAS"]
-						outputAS = self.scriptParams["outputAS"]
+                        inputAS = self.scriptParams["inputAS"]
+                        outputAS = self.scriptParams["outputAS"]
 
-						yield document
-						print json.dumps(document.logger)
-					except InvalidOffsetException as e:
-						print >> sys.stderr, "InvalidOffsetException prevented reading a document " + e.message
-						print json.dumps([])
-					sys.stdout.flush()
+                        yield document, scriptParams
+                        print(json.dumps(document.logger))
+                    except InvalidOffsetException as e:
+                        print("InvalidOffsetException prevented reading a document " + e.message, file=sys.stderr)
+                        print(json.dumps([]))
+                    sys.stdout.flush()
 
-			line = sys.stdin.readline().strip()
+            line = sys.stdin.readline().strip()
 
 def iterate():
-	"""I can't inherit any of this from ProcessingResource because
-		we need to completely change the flow to support iteration"""
-	iterator = GateIterator()
-	return iterator	
+    """I can't inherit any of this from ProcessingResource because
+        we need to completely change the flow to support iteration"""
+    iterator = GateIterator()
+    return iterator

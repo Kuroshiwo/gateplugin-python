@@ -1,7 +1,6 @@
 from collections import defaultdict
-from annotation_set import AnnotationSet
-from sourcedstring import SimpleSourcedUnicodeString
-import HTMLParser, re
+from .annotation_set import AnnotationSet
+import re
 
 class _AnnotationSetsDict(defaultdict):
 	def __init__(self, doc, logger):
@@ -37,65 +36,49 @@ class Document(object):
 						c = int(s[1:], 16)
 					else:
 						c = int(s)
-					return SimpleSourcedUnicodeString(unichr(c), 0)
+					return unichr(c)
 			except ValueError:
-				return SimpleSourcedUnicodeString('&#'+s+';', 0)
+				return '&#'+s+';'
 			else:
 				# Cannot use name2codepoint directly, because HTMLParser supports apos,
 				# which is not part of HTML 4
-				import htmlentitydefs
-				if HTMLParser.HTMLParser.entitydefs is None:
-					entitydefs = HTMLParser.HTMLParser.entitydefs = {'apos':u"'"}
+				import html.entities
+				if html.entities.entitydefs is None:
+					entitydefs = html.entities.entitydefs = {'apos':u"'"}
 					for k, v in htmlentitydefs.name2codepoint.iteritems():
 						Document.entitydefs[k] = unichr(v)
 				try:
-					return SimpleSourcedUnicodeString(Document.entitydefs[s], 0)
+					return Document.entitydefs[s]
 				except KeyError:
-					return SimpleSourcedUnicodeString('&'+s+';')
+					return '&'+s+';'
 
 		return re.sub(r"&(#?[xX]?(?:[0-9a-fA-F]+|\w{1,8}));", replaceEntities, s)
 
 	@staticmethod
 	def load(json, src=None):
-		"""Loads the document from a dictionary that results from GATE json, 
+		"""Loads the document from a dictionary that results from GATE json,
 			returns a document and a change logger"""
 		logger = []
 
-		text = SimpleSourcedUnicodeString(json["text"], json["text"])
+		text = json["text"]
 		text = Document.unescape(text)
-
-		# This unescape wreaks havok with the annotation offsets, so we 
-		# need to record how much to remove after which offsets.
-		adjustments = [(s.begin, s.begin - o) for o, s in text.sources if s.begin != s.end and o < s.begin]
-
-		adjustments = adjustments[::-1]
 
 		features = json["documentFeatures"]
 
 		doc = Document(logger, text, features, src)
 
 		if "entities" in json and len(json["entities"]):
-			for entity_key, instances in json["entities"].iteritems():
+			for entity_key, instances in list(json["entities"].items()):
 				annotation_set, annotation_name = entity_key.split(":")
-				for entity in instances:	
+				for entity in instances:
 					start, end = entity.pop("indices")
 					_id = entity.pop("annotationID")
 
-					for offset, adjustment in adjustments:
-						if start >= offset: 
-							start = start - adjustment
-							break
-
-					for offset, adjustment in adjustments:
-						if end >= offset:
-							end = end - adjustment
-							break
-
-					doc.annotationSets[annotation_set].add(start, end, 
+					doc.annotationSets[annotation_set].add(start, end,
 						annotation_name, entity, _id)
 
 
-		doc._text = SimpleSourcedUnicodeString(doc.text, doc.text)
+		doc._text = doc.text
 
 		del logger[:]
 		return doc

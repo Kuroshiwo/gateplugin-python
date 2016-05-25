@@ -1,9 +1,8 @@
-from annotation import Annotation
+from .annotation import Annotation
 from functools import partial
-from gate_exceptions import InvalidOffsetException
-from tree import SliceableTree
+from .gate_exceptions import InvalidOffsetException
+from .tree import SliceableTree
 from collections import defaultdict
-import sys
 
 class I(object):
 	"""Short for Index, represents a pair of offsets to be used when searching the tree"""
@@ -79,15 +78,15 @@ class AnnotationSet(object):
 		def compare_end(a, b):
 			return a.end - b.end
 
-		self._annotations_start = SliceableTree(self._annots.itervalues(), compare = compare_start)
-		self._annotations_end   = SliceableTree(self._annots.itervalues(), compare = compare_end) 
+		self._annotations_start = SliceableTree(iter(self._annots.values()), compare = compare_start)
+		self._annotations_end   = SliceableTree(iter(self._annots.values()), compare = compare_end) 
 
 	def _index_by_type(self):
 		"""Generates the type index. Only call this when you first need types, cos 
 			it's kind of expensive and also can't be used in init."""
 		self._annot_types = defaultdict(lambda: self.restrict([]))
 
-		for annotation in self._annots.itervalues():
+		for annotation in self._annots.values():
 			self._annot_types[annotation.type].append(annotation, log = False)
 
 	def __len__(self):
@@ -107,7 +106,6 @@ class AnnotationSet(object):
 		if annotation.start > annotation.end:
 			raise InvalidOffsetException("Annotation ends before it starts")
 		if annotation.start > doc_size:
-			print >> sys.stderr, annotation.start, doc_size, self.doc.text, annotation
 			raise InvalidOffsetException("Annotation starts after document ends")
 		if annotation.end > doc_size: 
 			raise InvalidOffsetException("Annotation ends after document ends")
@@ -198,7 +196,7 @@ class AnnotationSet(object):
 		if self._annot_types is None:
 			self._index_by_type()
 
-		return self._annot_types.keys()
+		return list(self._annot_types.keys())
 
 	def types(self):
 		"""Returns the dictionary index of types of annotation in this set"""
@@ -261,7 +259,7 @@ class AnnotationSet(object):
 	def __contains__(self, value):
 		"""Provides annotation in annotation_set functionality"""
 		if hasattr(value, "id"): # Annotations have ids, so check those instead.
-			return value.id in self._annots and value in self._annots.viewvalues()
+			return value.id in self._annots and value in self._annots.values()
 		return value in self._annots # On the off chance someone passed an ID in directly
 
 	contains = __contains__

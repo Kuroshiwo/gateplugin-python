@@ -1,6 +1,6 @@
 """Utilities to work with a GATE instance from within Python"""
-import os, json, sys, urllib
-from document import Document
+import os, json, sys, urllib.request, urllib.parse, urllib.error
+from .document import Document
 from contextlib import contextmanager
 from subprocess import Popen, PIPE
 
@@ -35,24 +35,24 @@ class Gate(object):
 		try:
 			return json.loads(response)
 		except ValueError:
-			print >> sys.stderr, response
+			print(response, file=sys.stderr)
 			raise Exception(response)
 
 	def load(self, document):
-		return self.loadURL("file:///"+urllib.quote(os.path.abspath(document)))
+		return self.loadURL("file:///"+urllib.parse.quote(os.path.abspath(document)))
 
 	def loadURL(self, document):
 		command = {
 			"command": "LOAD_DOCUMENT", 
 			"targetURL": document
 		}
-		print >> self.gateProcess.stdin, json.dumps(command)
+		print(json.dumps(command), file=self.gateProcess.stdin)
 
 		return Document.load(self.readResponse(), src=document)
 
 
 	def save(self, document, output):
-		return self.saveURL(document, "file:///"+urllib.quote(os.path.abspath(output)))
+		return self.saveURL(document, "file:///"+urllib.parse.quote(os.path.abspath(output)))
 
 	def saveURL(self, document, output):
 		command = {
@@ -62,6 +62,6 @@ class Gate(object):
 			"documentCommands": document.logger
 		}
 
-		print >> self.gateProcess.stdin, json.dumps(command)
+		print(json.dumps(command), file=self.gateProcess.stdin)
 
 		return Document.load(self.readResponse(), src=output)

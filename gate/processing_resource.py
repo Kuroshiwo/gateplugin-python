@@ -1,5 +1,5 @@
-from document import Document
-from corpus import Corpus
+from .document import Document
+from .corpus import Corpus
 import sys, json, codecs, inspect
 
 def fill_params(params, function):
@@ -59,7 +59,7 @@ class ProcessingResource(object):
 
 					self.document = self.execute(self.document, **fill_params(self.scriptParams, self.execute))
 
-					print json.dumps(self.document.logger)
+					print(json.dumps(self.document.logger))
 					sys.stdout.flush()
 
 			line = sys.stdin.readline().strip()
