@@ -275,6 +275,7 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 				builder.environment().put("PYTHONPATH", oldPythonPath + File.pathSeparator +
 						Files.fileFromURL(pythonPath).getAbsolutePath());
 				builder.directory(Files.fileFromURL(script).getAbsoluteFile().getParentFile());
+				builder.environment().put("PYTHONIOENCODING", "utf-8");
 			} catch (MalformedURLException e) {
 				throw new ExecutionException("Couldn't form python path for running PR", e);
 			}
@@ -385,13 +386,16 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 			pythonJsonG.flush();
 
 			// Expect python to exit at this point.
+			//deactivated
+			/*
 			try {
 				pythonProcess.waitFor();
 				cleanupProcess();
 			} catch(InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new ExecutionException("Interrupted while waiting for python to exit");
-			}			
+			}
+			*/			
 		} catch (IOException e) {
 			throw new ExecutionException("Unable to send end execution command to python process");
 		}
