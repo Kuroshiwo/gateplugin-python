@@ -32,7 +32,7 @@ class ProcessingResource(object):
 
 		line = sys.stdin.readline().strip()
 		while line:
-			line = codecs.decode(line, "utf8")
+			#line = codecs.decode(line, "utf8")
 
 			if line:
 				self.input_line = line
