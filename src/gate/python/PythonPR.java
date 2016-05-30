@@ -14,7 +14,6 @@ import gate.creole.metadata.RunTime;
 import gate.util.Files;
 
 
-import gate.corpora.DocumentJsonUtils;
 import gate.util.InvalidOffsetException;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
