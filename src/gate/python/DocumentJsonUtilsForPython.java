@@ -100,7 +100,7 @@ import gate.util.InvalidOffsetException;
  * @author ian
  * 
  */
-public class DocumentJsonUtils {
+public class DocumentJsonUtilsForPython {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -333,9 +333,15 @@ public class DocumentJsonUtils {
     ObjectWriter writer = MAPPER.writer();
 
     json.writeStartObject();
+    
+    //removing escaping
+    /*
     RepositioningInfo repos = new RepositioningInfo();
     String text = escape(doc.getContent().getContent(start, end)
             .toString(), repos);
+    */
+    
+    String text = doc.getContent().getContent(start, end).toString();
     json.writeStringField("text", text);
     json.writeFieldName("entities");
     json.writeStartObject();
@@ -358,8 +364,11 @@ public class DocumentJsonUtils {
         // indices:[start, end], corrected to match the sub-range of
         // text we're writing
         json.writeArrayFieldStart("indices");
-        json.writeNumber(repos.getOriginalPos(a.getStartNode().getOffset() - start, true));
-        json.writeNumber(repos.getOriginalPos(a.getEndNode().getOffset() - start, false));
+        //removing escaping
+        //json.writeNumber(repos.getOriginalPos(a.getStartNode().getOffset() - start, true));
+        //json.writeNumber(repos.getOriginalPos(a.getEndNode().getOffset() - start, false));
+        json.writeNumber(a.getStartNode().getOffset() - start);
+        json.writeNumber(a.getEndNode().getOffset() - start);
         json.writeEndArray(); // end of indices
         if(annotationTypeProperty != null) {
           json.writeStringField(annotationTypeProperty, a.getType());

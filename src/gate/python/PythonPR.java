@@ -232,7 +232,7 @@ public class PythonPR extends AbstractLanguageAnalyser implements ControllerAwar
 		// Output the document in JSON format on the pipe
 		try {
 
-			DocumentJsonUtils.writeDocument(document, 0l, document.getContent().size(), allAnnotations,
+			DocumentJsonUtilsForPython.writeDocument(document, 0l, document.getContent().size(), allAnnotations,
 					extraFeatures, null, "annotationID", jsonG);
 
 			jsonG.writeRaw("\n");
