@@ -13,6 +13,9 @@ for fileName in sorted(os.listdir("documents_json")):
     line = jsonFile.read().strip()
     #line = codecs.decode(line, "utf8")
     input_json = json.loads(line)
+    
+    print("json loaded")
+    sys.stdout.flush()
 
     """convert json do gate.Document""" 
     document = gate.Document.load(input_json)
